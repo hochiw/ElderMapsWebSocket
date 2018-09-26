@@ -1,9 +1,22 @@
-var url = require('url');
 
-const WebSocket = require('ws');
-const wsServer = new WebSocket.Server({port: process.env.PORT || 8080});
+
+var WebSocketServer = require('ws').Server
+var url = require('url');
+var express = require("express")
+var http = require("http")
+
 var connections = [];
 var pairs = 0;
+var app = express()
+var port = process.env.PORT || 8080
+
+var server = http.createServer(app)
+server.listen(port)
+
+console.log("Server running on %d",port);
+
+var wsServer = new WebSocketServer({server:server})
+console.log("Websocket initiated")
 
 wsServer.on('connection',function connection(ws,req) {
     const queries = url.parse(req.url,true).query;

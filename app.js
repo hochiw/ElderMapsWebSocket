@@ -19,6 +19,7 @@ var wsServer = new WebSocketServer({server:server})
 console.log("Websocket initiated")
 
 wsServer.on('connection',function connection(ws,req) {
+    ws.alive = true;
     const queries = url.parse(req.url,true).query;
     switch(queries.type) {
         case "client":
@@ -75,7 +76,18 @@ wsServer.on('connection',function connection(ws,req) {
                 break;
         }
         console.log("Disconnected");
-        console.log(connections);
     })
 });
+
+setInterval(() => {
+    wsServer.clients.forEach((ws) => {
+    if (!ws.alive) {
+        ws.alive = false;
+        return ws.terminate();
+    }
+    ws.ping(null, false, true);
+});
+}, 5000);
+
+
 

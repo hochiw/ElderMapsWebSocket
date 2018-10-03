@@ -5,7 +5,7 @@ var url = require('url');
 var express = require("express")
 var http = require("http")
 
-var connections = [];
+var connections = {};
 var pairs = 0;
 var app = express()
 var port = process.env.PORT || 8080
@@ -25,11 +25,13 @@ wsServer.on('connection',function connection(ws,req) {
         case "client":
             ws.type = "client";
             if (connections.length != 0) {
-                for (var item in connections) {
-                    if (connections[item].client == null) {
-                        ws.id = connections[item].id;
-                        connections[item].client = ws;
-                        ws.send("Connected with admin: No." + connections[item].id);
+                for (var key in connections) {
+                    if (connections[key].client == null) {
+                        ws.id = key;
+                        connections[key].client = ws;
+                        var o = '{"type":"6","content":"' + ws.id + '"}';
+                        console.log(ws.type + ws.id + " connected");
+                        ws.send(o);
                         break;
 
                     }
@@ -41,22 +43,28 @@ wsServer.on('connection',function connection(ws,req) {
 
         case "admin":
             ws.type = "admin";
-            ws.id = pairs;
-            ws.send("Hello Admin No. " + ws.id);
-            connections.push({id: pairs++,"admin":ws,"client":null});
+            ws.id = Math.floor(Math.random() * Math.floor(99999999));
+            var o = '{"type":"6","content":"' + ws.id + '"}';
+            ws.send(o.toString());
+            connections[ws.id] = {"admin":ws,"client":null};
+            console.log(ws.type + ws.id + " connected");
             break;
     }
 
     ws.on("message",function incoming(message) {
         if (ws.id != null) {
-            for (var item in connections) {
-                if (connections[item].id == ws.id) {
+            for (var key in connections) {
+                if (key == ws.id) {
                     switch (ws.type) {
                         case "admin":
-                            connections[item].client.send(message);
+                            if (connections[key].client != null) {
+                                connections[key].client.send(message);
+                            }
                             break;
                         case "client":
-                            connections[item].admin.send(message);
+                            if (connections[key].admin != null) {
+                                connections[key].admin.send(message);
+                            }
                             break;
                     }
                 }
@@ -67,7 +75,7 @@ wsServer.on('connection',function connection(ws,req) {
     ws.on("close", function() {
         switch(ws.type) {
             case "admin":
-                connections.splice(ws.id,1);
+                delete connections[ws.id];
                 break;
             case "client":
                 if (connections[ws.id] != null) {
@@ -88,6 +96,10 @@ setInterval(() => {
     ws.ping(null, false, true);
 });
 }, 5000);
+
+setInterval(() => {
+    console.log(Object.keys(connections));
+}, 1000);
 
 
 

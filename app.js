@@ -43,11 +43,11 @@ wsServer.on('connection',function connection(ws,req) {
 
                     }
                 }
-                break;
+
             } else {
                 ws.send("No available admin at the moment, please try later");
             }
-
+            break;
         case "admin":
             ws.type = "admin";
             ws.id = Math.floor(Math.random() * Math.floor(99999999));

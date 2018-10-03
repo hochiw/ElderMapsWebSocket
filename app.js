@@ -18,8 +18,15 @@ console.log("Server running on %d",port);
 var wsServer = new WebSocketServer({server:server})
 console.log("Websocket initiated")
 
+function heartbeat() {
+    this.isAlive = true;
+}
+
+function noop() {};
+
 wsServer.on('connection',function connection(ws,req) {
-    ws.alive = true;
+    ws.isAlive = true;
+    ws.on('pong', heartbeat);
     const queries = url.parse(req.url,true).query;
     switch(queries.type) {
         case "client":
@@ -87,19 +94,15 @@ wsServer.on('connection',function connection(ws,req) {
     })
 });
 
-setInterval(() => {
-    wsServer.clients.forEach((ws) => {
-    if (!ws.alive) {
-        ws.alive = false;
-        return ws.terminate();
-    }
-    ws.ping(null, false, true);
-});
-}, 5000);
 
-setInterval(() => {
-    console.log(Object.keys(connections));
-}, 1000);
+const interval = setInterval(function ping() {
+    wsServer.clients.forEach(function each(ws) {
+        if (ws.isAlive === false) return ws.terminate();
+
+        ws.isAlive = false;
+        ws.ping(noop);
+    });
+}, 5000);
 
 
 

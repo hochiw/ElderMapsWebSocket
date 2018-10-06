@@ -6,7 +6,6 @@ var express = require("express")
 var http = require("http")
 
 var connections = {};
-var pairs = 0;
 var app = express()
 var port = process.env.PORT || 8080
 
@@ -30,8 +29,10 @@ wsServer.on('connection',function connection(ws,req) {
     const queries = url.parse(req.url,true).query;
     switch(queries.type) {
         case "client":
+
             ws.type = "client";
-            if (connections.length != 0) {
+            if (Object.keys(connections).length != 0) {
+
                 for (var key in connections) {
                     if (connections[key].client == null) {
                         ws.id = key;
@@ -47,7 +48,8 @@ wsServer.on('connection',function connection(ws,req) {
                 }
 
             } else {
-                ws.send('{"type":"2","content":"No available admin at the moment, please try later"');
+                console.log("HI");
+                ws.send('{"type":"2","content":"No available admin at the moment, please try later"}');
             }
             break;
         case "admin":

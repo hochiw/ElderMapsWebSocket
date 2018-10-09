@@ -42,6 +42,8 @@ wsServer.on('connection',function connection(ws,req) {
                         ws.send(o);
                         var connected = '{"type":"2","content": "Connected with Admin' + ws.id + '"}';
                         ws.send(connected);
+                        var adminConnected = '{"type":"2","content": "Connected with Client ' + ws.id + '"}';
+                        connections[key].admin.send(adminConnected);
                         break;
 
                     }
@@ -58,7 +60,7 @@ wsServer.on('connection',function connection(ws,req) {
             var o = '{"type":"6","content":"' + ws.id + '"}';
             ws.send(o.toString());
             connections[ws.id] = {"admin":ws,"client":null};
-            var connected = '{"type":"2","content": "Connected with Client' + ws.id + '"}';
+            var connected = '{"type":"2","content": "Welcome, Your id is ' + ws.id + '"}';
             ws.send(connected);
             break;
     }
